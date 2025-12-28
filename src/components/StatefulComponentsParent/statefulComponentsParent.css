@@ -1,0 +1,12 @@
+.statefulComponentsParent {
+  display: flex;
+  flex-direction: row;
+  row-gap: 2px;
+  column-gap: 2px;
+  flex-flow: wrap;
+  justify-content: start;
+
+  width: 200px;
+  /* border-radius: 50%; */
+  /* clip-path: circle(50% at 50% 50%); */
+}

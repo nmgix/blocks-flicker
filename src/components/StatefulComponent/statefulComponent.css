@@ -1,0 +1,24 @@
+.stateful-component {
+  min-width: 5px;
+  max-width: 50px;
+  aspect-ratio: 8/10;
+  flex-grow: 1;
+  flex-shrink: 1;
+
+  visibility: visible;
+
+  animation: flickker 1.5s infinite;
+}
+
+@keyframes flickker {
+  0% {
+    visibility: visible;
+  }
+  50% {
+    visibility: hidden;
+  }
+  100% {
+    /* visibility: visible; */
+    visibility: hidden;
+  }
+}
