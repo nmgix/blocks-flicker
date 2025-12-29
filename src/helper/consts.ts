@@ -62,5 +62,5 @@ export const StatesAnimationDuration_S = {
   [ComponentStates.initial_off]: [0]
 };
 
-export const timerPerType_min = 3;
+export const timerPerType_min = 10;
 export const timersPerType_max = 15;

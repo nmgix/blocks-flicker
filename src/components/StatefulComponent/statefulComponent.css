@@ -2,8 +2,8 @@
   min-width: 5px;
   max-width: 50px;
   aspect-ratio: 8/10;
-  flex-grow: 1;
-  flex-shrink: 1;
+  /* flex-grow: 1; */
+  /* flex-shrink: 1; */
 
   visibility: visible;
 

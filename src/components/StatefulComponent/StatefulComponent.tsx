@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+// import { memo, useMemo } from "react";
 import { Colours, StatesAnimationDuration_S } from "../../helper/consts";
 import { getRandomArrayItem } from "../../helper/funcs";
 import type { ComponentStates } from "../../helper/types";
@@ -7,7 +7,7 @@ import "./statefulComponent.css";
 
 export type StatefulComponentState = {
   current_state: ComponentStates;
-  internal_timerGroup: number;
+  // internal_timerGroup: number;
 
   uuid: string;
 
@@ -16,8 +16,8 @@ export type StatefulComponentState = {
   // stateChange_offset_ms: number;
 };
 
-export const StatefulComonent = memo(
-  (state: StatefulComponentState) => {
+// memo(
+export const StatefulComonent = (state: StatefulComponentState) => {
     return (
       <div
         data-id={state.uuid}
@@ -32,11 +32,11 @@ export const StatefulComonent = memo(
         }}
       />
     );
-  },
-  (prev, next) => {
-    console.log(prev.current_state, next.current_state);
-    if (prev.current_state === next.current_state) return false;
-    // setTimeout?
-    return true;
   }
-);
+//   (prev, next) => {
+//     console.log(prev.current_state, next.current_state);
+//     if (prev.current_state === next.current_state) return false;
+//     // setTimeout?
+//     return true;
+//   }
+// );
