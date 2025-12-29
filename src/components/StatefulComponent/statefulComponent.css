@@ -1,13 +1,40 @@
 .stateful-component {
-  min-width: 5px;
-  max-width: 50px;
-  aspect-ratio: 8/10;
+  width: 5px;
+  height: 5px;
+  /* width: 1px; */
+  /* height: 1px; */
+  /* aspect-ratio: 8/10; */
   /* flex-grow: 1; */
   /* flex-shrink: 1; */
 
   visibility: visible;
 
   animation: flickker 1.5s infinite;
+
+  color: white;
+  font-size: 10px;
+}
+
+.stateful-component[data-state="RUNNING_FINE"] {
+  background-color: #08a045;
+}
+.stateful-component[data-state="BACKING_UP"] {
+  background-color: #0000ff;
+}
+.stateful-component[data-state="ERROR_STALE"] {
+  background-color: #ff5c00;
+}
+.stateful-component[data-state="ERROR_OCCURING"] {
+  background-color: #ff0000;
+}
+.stateful-component[data-state="STARTING"] {
+  background-color: #0000ff;
+}
+.stateful-component[data-state="DEAD"] {
+  background-color: #313335;
+}
+.stateful-component[data-state="INITIAL_OFF"] {
+  background-color: #313335;
 }
 
 @keyframes flickker {

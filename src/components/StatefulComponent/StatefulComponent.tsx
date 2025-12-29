@@ -1,7 +1,8 @@
 // import { memo, useMemo } from "react";
-import { Colours, StatesAnimationDuration_S } from "../../helper/consts";
+import { useMemo } from "react";
+import type { ComponentStates } from "../../helper/consts";
+import { StatesAnimationDuration_S } from "../../helper/consts";
 import { getRandomArrayItem } from "../../helper/funcs";
-import type { ComponentStates } from "../../helper/types";
 
 import "./statefulComponent.css";
 
@@ -12,27 +13,32 @@ export type StatefulComponentState = {
   uuid: string;
 
   animation_delay_s: number;
+
+  styles?: React.CSSProperties;
+  debug?: boolean;
   // animation_duration_s: number;
   // stateChange_offset_ms: number;
 };
 
 // memo(
 export const StatefulComonent = (state: StatefulComponentState) => {
-    return (
-      <div
-        data-id={state.uuid}
-        className='stateful-component'
-        style={{
-          backgroundColor: `#${Colours[state.current_state]}`,
-          animationDelay: `${state.animation_delay_s}s`,
-          // animationDuration: `${
-          //   Number(Number(getRandomArrayItem(StatesAnimationDuration_S[state.current_state]) + state.animation_duration_s).toFixed(3)) / 2
-          // }s`,
-          animationDuration: `${getRandomArrayItem(StatesAnimationDuration_S[state.current_state])}s`
-        }}
-      />
-    );
-  }
+  const animationDuration = useMemo(() => getRandomArrayItem(StatesAnimationDuration_S[state.current_state]), []);
+  const uuid_start = useMemo(() => state.uuid.slice(0, 3), []);
+
+  return (
+    <div
+      data-id={state.uuid}
+      data-state={state.current_state}
+      className='stateful-component'
+      style={{
+        animationDelay: `${state.animation_delay_s}s`,
+        animationDuration: `${animationDuration}s`,
+        ...state.styles
+      }}>
+      {state.debug == true ? uuid_start : <></>}
+    </div>
+  );
+};
 //   (prev, next) => {
 //     console.log(prev.current_state, next.current_state);
 //     if (prev.current_state === next.current_state) return false;

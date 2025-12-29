@@ -1,56 +1,60 @@
-import { ComponentStates } from "./types";
+export enum ComponentStates {
+  running_fine = "RUNNING_FINE", // GREEn
+  backing_up = "BACKING_UP", // YELLOW
+  error_stale = "ERROR_STALE", // dark ORANGE
+  error_occuring = "ERROR_OCCURING", // RED
+  starting = "STARTING", //blue
+  dead = "DEAD",
+  initial_off = "INITIAL_OFF"
+}
 
-export const Colours = {
-  [ComponentStates.running_fine]: "08A045",
-  [ComponentStates.backing_up]: "ffff00",
-  [ComponentStates.starting]: "0000FF",
-  [ComponentStates.error_stale]: "FF5C00",
-  [ComponentStates.error_occuring]: "FF0000",
-  [ComponentStates.dead]: "313335",
-  [ComponentStates.initial_off]: "313335"
-};
+// export const Colours = {
+//   [ComponentStates.running_fine]: "08A045",
+//   // [ComponentStates.backing_up]: "ffff00",
+//   // [ComponentStates.backing_up]: "ABFF19",
+//   [ComponentStates.backing_up]: "0000FF",
+//   [ComponentStates.starting]: "0000FF",
+//   // [ComponentStates.starting]: "ffff00",
+//   [ComponentStates.error_stale]: "FF5C00",
+//   [ComponentStates.error_occuring]: "FF0000",
+//   [ComponentStates.dead]: "313335",
+//   [ComponentStates.initial_off]: "313335"
+// };
 
-export const StatesFlow: { [key in ComponentStates]: { state: ComponentStates; chance: number }[] } = {
-  [ComponentStates.initial_off]: [{ state: ComponentStates.starting, chance: 1 }],
+export const StatesFlow: { [key in ComponentStates]: { item: ComponentStates; weight: number }[] } = {
+  [ComponentStates.initial_off]: [
+    { item: ComponentStates.initial_off, weight: 1 },
+    { item: ComponentStates.starting, weight: 3 }
+  ],
   [ComponentStates.starting]: [
-    { state: ComponentStates.running_fine, chance: 10 },
-    { state: ComponentStates.error_occuring, chance: 5 },
-    { state: ComponentStates.dead, chance: 1 }
+    { item: ComponentStates.running_fine, weight: 10 },
+    { item: ComponentStates.error_occuring, weight: 5 },
+    { item: ComponentStates.dead, weight: 1 }
   ],
   [ComponentStates.running_fine]: [
-    { state: ComponentStates.running_fine, chance: 7 },
-    { state: ComponentStates.error_occuring, chance: 2 },
-    { state: ComponentStates.dead, chance: 1 }
+    { item: ComponentStates.running_fine, weight: 7 },
+    { item: ComponentStates.error_occuring, weight: 2 },
+    { item: ComponentStates.dead, weight: 1 }
   ],
   [ComponentStates.error_occuring]: [
-    { state: ComponentStates.error_occuring, chance: 5 },
-    { state: ComponentStates.error_stale, chance: 5 },
-    { state: ComponentStates.dead, chance: 3 }
+    { item: ComponentStates.error_occuring, weight: 5 },
+    { item: ComponentStates.error_stale, weight: 5 },
+    { item: ComponentStates.dead, weight: 3 }
   ],
   [ComponentStates.dead]: [
-    { state: ComponentStates.dead, chance: 3 },
-    { state: ComponentStates.backing_up, chance: 3 }
+    { item: ComponentStates.dead, weight: 1 },
+    { item: ComponentStates.backing_up, weight: 5 }
   ],
   [ComponentStates.backing_up]: [
-    { state: ComponentStates.running_fine, chance: 7 },
-    { state: ComponentStates.error_occuring, chance: 2 }
+    { item: ComponentStates.running_fine, weight: 7 },
+    { item: ComponentStates.error_occuring, weight: 2 }
   ],
   [ComponentStates.error_stale]: [
-    { state: ComponentStates.error_stale, chance: 5 },
-    { state: ComponentStates.backing_up, chance: 7 },
-    { state: ComponentStates.dead, chance: 2 }
+    { item: ComponentStates.error_stale, weight: 5 },
+    { item: ComponentStates.backing_up, weight: 7 },
+    { item: ComponentStates.dead, weight: 2 }
   ]
 };
-
-// export const StatesChangeFromCurrentChance = {
-//   [ComponentStates.running_fine]: 30,
-//   [ComponentStates.backing_up]: 100,
-//   [ComponentStates.starting]: 100,
-//   [ComponentStates.error_stale]: 70,
-//   [ComponentStates.error_occuring]: 40,
-//   [ComponentStates.dead]: 100,
-//   [ComponentStates.initial_off]: 100
-// };
 
 export const StatesAnimationDuration_S = {
   [ComponentStates.running_fine]: [0, 1.5, 0.7],
@@ -61,6 +65,3 @@ export const StatesAnimationDuration_S = {
   [ComponentStates.dead]: [0],
   [ComponentStates.initial_off]: [0]
 };
-
-export const timerPerType_min = 10;
-export const timersPerType_max = 15;

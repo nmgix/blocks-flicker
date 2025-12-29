@@ -1,37 +1,61 @@
 import { useEffect, useReducer, useRef } from "react";
 import { StatefulComonent, type StatefulComponentState } from "../StatefulComponent/StatefulComponent";
-import { ComponentStates } from "../../helper/types";
+import { ComponentStates } from "../../helper/consts";
 
 import { v4 as uuid } from "uuid";
 
 import "./statefulComponentsParent.css";
 import { chunkify, /*getRandomInt,*/ getRandomIntFloating, weighted_random } from "../../helper/funcs";
-import { StatesFlow, timerPerType_min/*, timersPerType_max*/ } from "../../helper/consts";
+import { StatesFlow } from "../../helper/consts";
 
-type StatefulComponentsParentState = {
+export type StatefulComponentsParentState = {
   elements_amount: number;
-  timers_per_type: { min: number; max: number };
+  timers_amount: number;
+  sorted: boolean;
+
+  debug: boolean;
+
+  rerender_speed_ms: number;
+
+  component: {
+    delay_s: { min: number; max: number };
+    size: { width: number; height: number };
+    gap: { row: number; column: number } | number;
+    animation: boolean;
+  };
+  timer: {
+    update_rate_s: { min: number; max: number };
+  };
+
+  parent_width_px: number;
 };
 
-const stockComponentGenerator = () =>
-  ({
-    current_state: ComponentStates.initial_off,
-    // internal_timerGroup: -1,
-    uuid: uuid(),
-    animation_delay_s: getRandomIntFloating(0, 4) //getRandomInt(0, 3),
-    // animation_duration_s: getRandomIntFloating(0.5, 2.5)
-    // stateChange_offset_ms: getRandomInt(0, 9)
-  } as StatefulComponentState);
-
-export const StatefulComponentsParent = (state: StatefulComponentsParentState) => {
+export const StatefulComponentsParent = ({
+  elements_amount,
+  sorted = true,
+  timers_amount,
+  debug = false,
+  parent_width_px = 400,
+  rerender_speed_ms = 1000,
+  component,
+  timer
+}: StatefulComponentsParentState) => {
   const [, forceUpdate] = useReducer(x => x + 1, 0);
 
   const timerGroups = useRef<{ [timerId: string]: StatefulComponentState[] }>({});
 
-  type StateGroups = { [state in ComponentStates]: Map<string, StatefulComponentState> }
-  // const stateType_groups = useRef<SG>()
-  const stateType_groups = useRef<StateGroups>(Object.fromEntries(Object.keys(ComponentStates).map(s_n => [s_n, new Map<string, StatefulComponentState>([])])) as StateGroups)
-  
+  type StateGroups = { [state in ComponentStates]: Map<string, StatefulComponentState> };
+  const stateType_groups = useRef<StateGroups>(
+    Object.fromEntries(Object.values(ComponentStates).map(s_n => [s_n, new Map<string, StatefulComponentState>([])])) as StateGroups
+  );
+  if (debug == true) console.log(stateType_groups.current);
+
+  const stockComponentGenerator = () =>
+    ({
+      current_state: ComponentStates.initial_off,
+      uuid: uuid(),
+      animation_delay_s: getRandomIntFloating(component.delay_s.min, component.delay_s.max) //getRandomInt(0, 3),
+    } as StatefulComponentState);
 
   function handleItemsLoop(internal_timerId: number | null, app_timerId: string) {
     if (internal_timerId) clearInterval(internal_timerId);
@@ -44,65 +68,74 @@ export const StatefulComponentsParent = (state: StatefulComponentsParentState) =
       });
     }
 
-    let currTimer = setTimeout(() => handleItemsLoop(currTimer, app_timerId), getRandomIntFloating(50, 100) * 100);
+    let currTimer = setTimeout(
+      () => handleItemsLoop(currTimer, app_timerId),
+      getRandomIntFloating(timer.update_rate_s.min, timer.update_rate_s.max) * 1000
+    );
   }
   useEffect(() => {
-    // groups.current.INITIAL_OFF
-    const components_setup = Array(state.elements_amount)
+    const components_setup = Array(elements_amount)
       .fill(null)
-      .map(() => {
-        const component = stockComponentGenerator()
-        return [component.uuid, component]
-      });
-      // @ts-ignore оно работает :d
-      stateType_groups.current.INITIAL_OFF = new Map(components_setup)
+      .map(() => stockComponentGenerator());
+    // @ts-ignore оно работает :d
+    stateType_groups.current.INITIAL_OFF = new Map(components_setup.map(c => [c.uuid, c]));
 
-    const currentTimerAmount = timerPerType_min; // (max is timersPerType_max)
-
-    let subdivs = chunkify(components_setup, currentTimerAmount, true);
-    for (let i = 0; i < currentTimerAmount; i++) {
+    let subdivs = chunkify(components_setup, timers_amount, true);
+    for (let i = 0; i < timers_amount; i++) {
       const timer_id = uuid();
       timerGroups.current[timer_id] = subdivs[i];
-      handleItemsLoop(null, timer_id);
+      setTimeout(() => handleItemsLoop(null, timer_id), 2000);
     }
 
     setInterval(() => {
       forceUpdate();
-    }, 1000);
-
+    }, rerender_speed_ms ?? 1000);
   }, []);
-  // лучше слделать prevState и назначать резлуьтат этой: функции в newStaate, обновлять новые состояния постоянно, но ререндерить только когда интервал+оффсет наступили
 
-  // пока что я сделаю через setInterval напррямую, у меня немного компонентов пока что
-
-  // первое ксттм ожно делать через useMemo prev new components и делать setTimeout для обновления пропсов кек, немного хак
   function triggerStateChange(component: StatefulComponentState): StatefulComponentState {
-    console.log(component);
+    if (debug == true) console.log(component);
     const possibleFutureStates = StatesFlow[component.current_state];
-    const newState = weighted_random(possibleFutureStates.map(o => ({ item: o.state, weight: o.chance }))) as ComponentStates;
-    //  вот это прям плохо выглядит, переназначение в массиве       ^
+    const newState = weighted_random(possibleFutureStates) as ComponentStates;
 
-    let debug_prevState = component.current_state;
+    if (debug == true) console.log({ uuid: component.uuid, state: `${component.current_state} -> ${newState}` });
+
+    stateType_groups.current[component.current_state].delete(component.uuid);
+    stateType_groups.current[newState].set(component.uuid, component);
     component.current_state = newState;
-    console.log({ uuid: component.uuid, state: `${debug_prevState} -> ${newState}` });
-
-    // stateType_groups
 
     return component;
   }
 
-  return (
-    <div className='statefulComponentsParent'>
-      {/* {render_components.current.map(s => (
-        <StatefulComonent {...s} key={s.uuid} />
-      ))} */}
+  function renderGroup(s: StatefulComponentState) {
+    return (
+      <StatefulComonent
+        {...s}
+        key={s.uuid}
+        styles={{ width: component.size.width, height: component.size.height, ...(component.animation == false && { animation: undefined }) }}
+        debug={debug}
+      />
+    );
+  }
 
-      {/* это неоптимизированный ужас, я знаю */}
-      {/* {Object.values(timerGroups.current)
-        .reduce((acc, curr) => [...acc, ...curr], [])
-        .map(s => (
-          <StatefulComonent {...s} key={s.uuid} />
-        ))} */}
+  const styles_gap = typeof component.gap == "number" ? { gap: component.gap } : { row_gap: component.gap.row, column_gap: component.gap.column };
+
+  return (
+    <div className='statefulComponentsParent' style={{ width: parent_width_px, ...styles_gap }}>
+      {!sorted ? (
+        Object.values(timerGroups.current)
+          .reduce((acc, curr) => [...acc, ...curr], [])
+          .map(renderGroup)
+      ) : (
+        <>
+          {[...stateType_groups.current.RUNNING_FINE.values()].map(renderGroup)}
+          {[...stateType_groups.current.BACKING_UP.values()].map(renderGroup)}
+          {[...stateType_groups.current.ERROR_OCCURING.values()].map(renderGroup)}
+          {[...stateType_groups.current.ERROR_STALE.values()].map(renderGroup)}
+          {[...stateType_groups.current.STARTING.values()].map(renderGroup)}
+          {[...stateType_groups.current.DEAD.values()].map(renderGroup)}
+          {[...stateType_groups.current.INITIAL_OFF.values()].map(renderGroup)}
+        </>
+      )}
     </div>
   );
 };
