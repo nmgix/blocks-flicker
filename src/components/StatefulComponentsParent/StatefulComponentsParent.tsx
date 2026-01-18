@@ -21,7 +21,7 @@ export type StatefulComponentsParentState = {
     delay_s: { min: number; max: number };
     size: { width: number; height: number };
     gap: { row: number; column: number } | number;
-    animation: boolean;
+    // animation: boolean;
   };
   timer: {
     update_rate_s: { min: number; max: number };
@@ -121,6 +121,7 @@ export const StatefulComponentsParent = ({
 
   return (
     <div className='statefulComponentsParent' style={{ width: parent_width_px, ...styles_gap }}>
+      {/* <div className='shape' /> */}
       {!sorted ? (
         Object.values(timerGroups.current)
           .reduce((acc, curr) => [...acc, ...curr], [])

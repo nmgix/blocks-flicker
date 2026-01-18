@@ -8,19 +8,6 @@ export enum ComponentStates {
   initial_off = "INITIAL_OFF"
 }
 
-// export const Colours = {
-//   [ComponentStates.running_fine]: "08A045",
-//   // [ComponentStates.backing_up]: "ffff00",
-//   // [ComponentStates.backing_up]: "ABFF19",
-//   [ComponentStates.backing_up]: "0000FF",
-//   [ComponentStates.starting]: "0000FF",
-//   // [ComponentStates.starting]: "ffff00",
-//   [ComponentStates.error_stale]: "FF5C00",
-//   [ComponentStates.error_occuring]: "FF0000",
-//   [ComponentStates.dead]: "313335",
-//   [ComponentStates.initial_off]: "313335"
-// };
-
 export const StatesFlow: { [key in ComponentStates]: { item: ComponentStates; weight: number }[] } = {
   [ComponentStates.initial_off]: [
     { item: ComponentStates.initial_off, weight: 1 },
