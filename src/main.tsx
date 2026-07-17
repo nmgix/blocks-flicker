@@ -5,15 +5,17 @@ import GUI from "lil-gui"
 
 let gui = new GUI()
 
+// fast
 const settings: StatefulComponentsParentState = {
-  elements_amount: 100,
+  elements_amount: 5000,
   sorted: true,
   debug: false,
   parent_width_px: 1000,
+
   rerender_speed_ms: 10,
   
   timers_amount: 2,
-  component: { delay_s: { min: 0, max: 1 }, gap: 0, size: { width: 10, height: 10 }, animation: true },
+  component: { delay_s: { min: 0, max: 1 }, gap: 0, size: { width: 10, height: 10 } },
   timer: { update_rate_s: { min: 0.01, max: 0.1 } },
 };
 
