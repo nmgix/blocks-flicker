@@ -21,7 +21,7 @@ export type StatefulComponentsParentState = {
     delay_s: { min: number; max: number };
     size: { width: number; height: number };
     gap: { row: number; column: number } | number;
-    // animation: boolean;
+    animation: boolean;
   };
   timer: {
     update_rate_s: { min: number; max: number };
@@ -133,7 +133,7 @@ export const StatefulComponentsParent = ({
       <StatefulComonent
         {...s}
         key={s.uuid}
-        styles={{ width: component.size.width, height: component.size.height }}
+        styles={{ width: component.size.width, height: component.size.height, ...(component.animation == false && { animation: undefined }) }}
         debug={debug}
       />
     );
