@@ -1,3 +1,4 @@
+// @ts-ignore
 export enum ComponentStates {
   running_fine = "RUNNING_FINE", // GREEn
   backing_up = "BACKING_UP", // YELLOW
