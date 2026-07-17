@@ -7,10 +7,10 @@ let gui = new GUI()
 
 // fast
 const settings: StatefulComponentsParentState = {
-  elements_amount: 5000,
+  elements_amount: 500,
   sorted: true,
   debug: false,
-  parent_width_px: 1000,
+  parent_width_px: 500,
 
   rerender_speed_ms: 10,
   timers_amount: 2,
