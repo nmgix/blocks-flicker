@@ -30,6 +30,7 @@ export type StatefulComponentsParentState = {
   parent_width_px: number;
 };
 
+
 export const StatefulComponentsParent = ({
   elements_amount,
   sorted = true,
@@ -45,9 +46,8 @@ export const StatefulComponentsParent = ({
   const timerGroups = useRef<{ [timerId: string]: StatefulComponentState[] }>({});
 
   type StateGroups = { [state in ComponentStates]: Map<string, StatefulComponentState> };
-  const stateType_groups = useRef<StateGroups>(
-    Object.fromEntries(Object.values(ComponentStates).map(s_n => [s_n, new Map<string, StatefulComponentState>([])])) as StateGroups
-  );
+  const createEmptyStateGroups = () => Object.fromEntries(Object.values(ComponentStates).map(s_n => [s_n, new Map<string, StatefulComponentState>([])])) as StateGroups
+  const stateType_groups = useRef<StateGroups>(createEmptyStateGroups());
   if (debug == true) console.log(stateType_groups.current);
 
   const stockComponentGenerator = () =>
@@ -57,8 +57,9 @@ export const StatefulComponentsParent = ({
       animation_delay_s: getRandomIntFloating(component.delay_s.min, component.delay_s.max) //getRandomInt(0, 3),
     } as StatefulComponentState);
 
+  const loopTimers = useRef(new Set<number>())
   function handleItemsLoop(internal_timerId: number | null, app_timerId: string) {
-    if (internal_timerId) clearInterval(internal_timerId);
+    if (internal_timerId) { clearInterval(internal_timerId);loopTimers.current.delete(internal_timerId) }
 
     const currentGroup = timerGroups.current[app_timerId];
 
@@ -72,25 +73,46 @@ export const StatefulComponentsParent = ({
       () => handleItemsLoop(currTimer, app_timerId),
       getRandomIntFloating(timer.update_rate_s.min, timer.update_rate_s.max) * 1000
     );
+    loopTimers.current.add(currTimer)
+    if(debug) console.log(loopTimers)
   }
   useEffect(() => {
-    const components_setup = Array(elements_amount)
+    // for(const state of Object.keys(stateType_groups.current)) stateType_groups.current[state as keyof typeof stateType_groups.current].clear()
+    stateType_groups.current = createEmptyStateGroups()
+    let components_setup = Array(elements_amount)
       .fill(null)
       .map(() => stockComponentGenerator());
     // @ts-ignore оно работает :d
     stateType_groups.current.INITIAL_OFF = new Map(components_setup.map(c => [c.uuid, c]));
 
     let subdivs = chunkify(components_setup, timers_amount, true);
+    const timeouts: number[] = []
     for (let i = 0; i < timers_amount; i++) {
       const timer_id = uuid();
       timerGroups.current[timer_id] = subdivs[i];
-      setTimeout(() => handleItemsLoop(null, timer_id), 2000);
+      timeouts.push(setTimeout(() => handleItemsLoop(null, timer_id), 0)); // 0 был 2000 (2сек)
     }
 
-    setInterval(() => {
+    const forcedRerenderInterval = setInterval(() => {
       forceUpdate();
     }, rerender_speed_ms ?? 1000);
-  }, []);
+
+    if(debug) {
+      console.group('try')
+      console.log(elements_amount)
+      console.log(timerGroups)
+      console.log(Object.values(stateType_groups.current).reduce((acc, curr) => acc+curr.size, 0))
+      console.groupEnd()
+    }
+    return () => {
+      for (const timeout of timeouts) clearTimeout(timeout);
+      components_setup = [];
+      for(const state of Object.keys(stateType_groups.current)) stateType_groups.current[state as keyof typeof stateType_groups.current].clear()
+      clearInterval(forcedRerenderInterval)
+      for(const timer of loopTimers.current) clearTimeout(timer)
+      timerGroups.current = {}
+    }
+  }, [elements_amount, rerender_speed_ms, debug, timers_amount, parent_width_px, sorted]); // лмао если чёто не тоглится в ререндере из-за lil gui, добавь сюда :kekw:
 
   function triggerStateChange(component: StatefulComponentState): StatefulComponentState {
     if (debug == true) console.log(component);
@@ -119,6 +141,7 @@ export const StatefulComponentsParent = ({
 
   const styles_gap = typeof component.gap == "number" ? { gap: component.gap } : { row_gap: component.gap.row, column_gap: component.gap.column };
 
+  if(debug) console.log(stateType_groups.current)
   return (
     <div className='statefulComponentsParent' style={{ width: parent_width_px, ...styles_gap }}>
       {!sorted ? (
